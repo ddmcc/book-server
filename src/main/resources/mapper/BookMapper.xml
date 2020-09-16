@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.book.mapper.BookMapper">
+
+    <sql id="BASE_COLUMN">
+        b.book_id bookId, b.book_name bookName, b.publication_date publicationDate,
+        b.author, b.press, b.introduction, b.price, b.pages, b.binding, b.isbn, b.image
+    </sql>
+
+    <!-- 按评论数排序 -->
+    <select id="listBookByPop" resultType="com.soft.book.entity.bo.Book">
+        SELECT <include refid="BASE_COLUMN" />,
+               COUNT( c.comment_id ) count,
+                CAST( AVG( c.score ) AS DECIMAL ( 10, 2 ) ) score
+        FROM book b
+        LEFT JOIN comment c
+        ON b.book_id = c.book_id
+        <where>
+            <if test="param != null and param != ''">
+                book_name LIKE CONCAT('%', #{param}, '%') OR author LIKE CONCAT('%', #{param}, '%')
+            </if>
+        </where>
+        GROUP BY b.book_id
+        ORDER BY COUNT( c.comment_id ) DESC
+    </select>
+
+    <!-- 按平均分排序 -->
+    <select id="listBookByScore" resultType="com.soft.book.entity.bo.Book">
+        SELECT <include refid="BASE_COLUMN" />,
+        COUNT( c.comment_id ) count,
+        CAST( AVG( c.score ) AS DECIMAL ( 10, 2 ) ) score
+        FROM book b
+        LEFT JOIN comment c
+        ON b.book_id = c.book_id
+        <where>
+            <if test="param != null and param != ''">
+                book_name LIKE CONCAT('%', #{param}, '%') OR author LIKE CONCAT('%', #{param}, '%')
+            </if>
+        </where>
+        GROUP BY b.book_id
+        ORDER BY AVG( c.score ) DESC
+    </select>
+
+    <!-- 综合排序 -->
+    <select id="listBookByAll" resultType="com.soft.book.entity.bo.Book">
+        SELECT <include refid="BASE_COLUMN" />,
+        COUNT( c.comment_id ) count,
+        CAST( AVG( c.score ) AS DECIMAL ( 10, 2 ) ) score
+        FROM book b
+        LEFT JOIN comment c
+        ON b.book_id = c.book_id
+        <where>
+            <if test="param != null and param != ''">
+                book_name LIKE CONCAT('%', #{param}, '%') OR author LIKE CONCAT('%', #{param}, '%')
+            </if>
+        </where>
+        GROUP BY b.book_id
+        ORDER BY IF(COUNT( c.comment_id ) > 100 ,
+        (SUM(IF(c.score >= 2.5, 1, 0)) / COUNT( c.comment_id )) * 100,
+        (SUM(IF(c.score >= 2.5, 1, 0)) / COUNT( c.comment_id )) * COUNT( c.comment_id )) DESC
+    </select>
+
+    <select id="getBook" resultType="com.soft.book.entity.Detail">
+        SELECT <include refid="BASE_COLUMN" />,
+        COUNT( c.comment_id ) count,
+        CAST( AVG( c.score ) AS DECIMAL ( 10, 2 ) ) score
+        FROM book b
+        LEFT JOIN comment c
+        ON b.book_id = c.book_id
+        WHERE b.book_id = #{id}
+    </select>
+
+</mapper>

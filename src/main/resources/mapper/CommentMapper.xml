@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft.book.mapper.CommentMapper">
+
+    <resultMap id="resultMap" type="java.util.Map">
+        <result column="ONE" property="ONE" javaType="java.math.BigDecimal" typeHandler="com.soft.book.entity.TypeHandle" />
+        <result column="TWO" property="TWO" javaType="java.math.BigDecimal" typeHandler="com.soft.book.entity.TypeHandle" />
+        <result column="THREE" property="THREE" javaType="java.math.BigDecimal" typeHandler="com.soft.book.entity.TypeHandle" />
+        <result column="FOUR" property="FOUR" javaType="java.math.BigDecimal" typeHandler="com.soft.book.entity.TypeHandle" />
+        <result column="FIVE" property="FIVE" javaType="java.math.BigDecimal" typeHandler="com.soft.book.entity.TypeHandle" />
+    </resultMap>
+
+    <select id="listComment" resultType="com.soft.book.entity.bo.Comment">
+        SELECT c.comment_id commentId,u.user_name userName,c.comment_content commentContent,c.score,c.create_time createTime
+        FROM comment c
+        INNER JOIN user u
+        ON c.user_id = u.user_id
+        WHERE c.book_id = #{bookId}
+        ORDER BY c.create_time DESC
+    </select>
+
+    <select id="getByUserAndBookId" resultType="com.soft.book.entity.bo.Comment">
+        SELECT c.comment_id commentId,c.comment_content commentContent,c.score,c.create_time createTime
+        FROM comment c
+        WHERE c.book_id = #{bookId}
+        AND c.user_id = #{userId}
+    </select>
+
+
+    <select id="getScores"  resultMap="resultMap">
+        SELECT v.ONE / v.TOTAL ONE,
+               v.TWO / v.TOTAL TWO,
+               v.THREE / v.TOTAL THREE,
+               v.FOUR / v.TOTAL FOUR,
+               v.FIVE / v.TOTAL FIVE FROM (
+                                              SELECT
+                                                  SUM(IF(score = 1, 1, 0)) ONE,
+                                                  SUM(IF(score = 2, 1, 0))  TWO,
+                                                  SUM(IF(score = 3, 1, 0))  THREE,
+                                                  SUM(IF(score = 4, 1, 0)) FOUR,
+                                                  SUM(IF(score = 5, 1, 0))  FIVE,
+                                                  COUNT(comment_id) TOTAL
+                                              FROM comment
+                                              WHERE book_id = #{bookId} ) v
+    </select>
+
+
+    <insert id="save" parameterType="com.soft.book.entity.bo.Comment">
+        INSERT INTO comment(book_id, user_id, comment_content, score, create_time)
+        VALUES(#{bookId}, #{userId}, #{commentContent}, #{score}, #{createTime})
+    </insert>
+
+    <select id="listCommentContent" resultType="java.lang.String">
+        SELECT GROUP_CONCAT(comment_content)
+        FROM comment
+        WHERE book_id = #{id}
+        AND LENGTH(comment_content) >= 15
+    </select>
+
+</mapper>

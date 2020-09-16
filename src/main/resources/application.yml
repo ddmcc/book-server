@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: book-server
+  datasource:
+    druid:
+      url: jdbc:mysql://47.107.135.196:3306/book?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      username: job
+      password: 123456
+      initial-size: 1
+      min-idle: 1
+      max-active: 20
+      test-on-borrow: true
+      # MySQL 8.x: com.mysql.cj.jdbc.Driver
+      driver-class-name: com.mysql.jdbc.Driver
+      filters: com.soft.book.config.filter.DruidLogFilter
+  redis:
+    host: 47.107.135.196
+    port: 6379
+    password: todolist
+    lettuce:
+      pool:
+        max-active: 16
+        max-idle: 16
+
+
+server:
+  port: 10001
+
+mybatis:
+  type-aliases-package: com.soft.book.entity
+  mapper-locations: classpath:mapper/*.xml
